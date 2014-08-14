@@ -62,40 +62,59 @@ public class UsernameFilterForTesting implements Filter {
     
       String usernameFilterForTestingPassword = servletRequest.getParameter("usernameFilterForTestingPassword");
       
-      if (usernameFilterForTestingPassword != null && password != null && password.equals(usernameFilterForTestingPassword)) {
-        
-        final String usernameFilterForTestingUsername = servletRequest.getParameter("usernameFilterForTestingUsername");
-        
-        if (usernameFilterForTestingUsername != null && !"".equals(usernameFilterForTestingUsername.trim())) {
-          
-          //set this
-          servletRequest.setAttribute("REMOTE_USER", usernameFilterForTestingUsername);
-          
-          if (servletRequest instanceof HttpServletRequest) {
-            HttpServletRequest httpServletRequest = (HttpServletRequest)servletRequest;
-            httpServletRequest = new HttpServletRequestWrapper(httpServletRequest) {
-
-              /**
-               * @see javax.servlet.http.HttpServletRequestWrapper#getUserPrincipal()
-               */
-              @Override
-              public Principal getUserPrincipal() {
-                return new Principal() {
-                  
-                  public String getName() {
-                    return usernameFilterForTestingUsername;
-                  }
-                };
-              }
-              
-            };
-            servletRequestOrWrapper = httpServletRequest;
-          }
-          
-        }
-        
+      String usernameFilterForTestingUsername = null;
+      
+      //start with session (default)
+      HttpServletRequest httpServletRequest = null;
+      if (servletRequest instanceof HttpServletRequest) {
+        httpServletRequest = (HttpServletRequest)servletRequest;
+        usernameFilterForTestingUsername = (String)httpServletRequest.getSession().getAttribute("usernameFilterForTestingUsername");
       }
       
+      //if its in the URL, that supercedes...
+      if (usernameFilterForTestingPassword != null && password != null && password.equals(usernameFilterForTestingPassword)) {
+        
+        String tempUsername = servletRequest.getParameter("usernameFilterForTestingUsername");
+        
+        if (tempUsername != null && !"".equals(usernameFilterForTestingUsername.trim())) {
+
+          usernameFilterForTestingUsername = tempUsername;
+
+          //store in session
+          if (httpServletRequest != null) {
+            httpServletRequest.getSession().setAttribute("usernameFilterForTestingUsername", usernameFilterForTestingUsername);
+          }
+        }
+      }
+      
+      if (usernameFilterForTestingUsername != null && !"".equals(usernameFilterForTestingUsername.trim())) {
+        
+        //set this
+        servletRequest.setAttribute("REMOTE_USER", usernameFilterForTestingUsername);
+        
+        //store in session
+        if (httpServletRequest != null) {
+        
+          final String USERNAME_FILTER_FOR_TESTING_USERNAME = usernameFilterForTestingUsername;
+          
+          servletRequestOrWrapper = new HttpServletRequestWrapper(httpServletRequest) {
+
+            /**
+             * @see javax.servlet.http.HttpServletRequestWrapper#getUserPrincipal()
+             */
+            @Override
+            public Principal getUserPrincipal() {
+              return new Principal() {
+                
+                public String getName() {
+                  return USERNAME_FILTER_FOR_TESTING_USERNAME;
+                }
+              };
+            }
+            
+          };
+        }
+      }      
       
     }
     
