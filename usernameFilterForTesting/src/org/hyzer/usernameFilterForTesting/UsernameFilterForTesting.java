@@ -76,7 +76,7 @@ public class UsernameFilterForTesting implements Filter {
         
         String tempUsername = servletRequest.getParameter("usernameFilterForTestingUsername");
         
-        if (tempUsername != null && !"".equals(usernameFilterForTestingUsername.trim())) {
+        if (tempUsername != null && !"".equals(tempUsername.trim())) {
 
           usernameFilterForTestingUsername = tempUsername;
 
